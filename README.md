@@ -1,6 +1,6 @@
 # Weather Forecasting App
 
-A modern and responsive weather forecasting application built with React and TypeScript, utilizing the OpenWeatherMap API.
+A modern and responsive weather forecasting application built with React, utilizing the OpenWeatherMap API.
 
 ## Features
 
@@ -26,7 +26,7 @@ A modern and responsive weather forecasting application built with React and Typ
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/andrewyen7/Weather-Forecasting-App.git
 cd weather-forecast
 ```
 
@@ -37,7 +37,7 @@ npm install
 
 3. Create a `.env` file in the root directory and add your OpenWeatherMap API key:
 ```
-REACT_APP_OPENWEATHER_API_KEY=your_api_key_here
+VITE_APP_OPENWEATHER_API_KEY=your_api_key_here
 ```
 
 4. Start the development server:
@@ -45,16 +45,16 @@ REACT_APP_OPENWEATHER_API_KEY=your_api_key_here
 npm start
 ```
 
-The application will be available at `http://localhost:3000`
+The application will be available at `http://localhost:5173`
 
 ## Technologies Used
 
 - React
-- TypeScript
 - Material-UI
 - Styled Components
 - Axios
 - OpenWeatherMap API
+- Vite
 
 ## Project Structure
 
@@ -62,10 +62,9 @@ The application will be available at `http://localhost:3000`
 src/
   ├── components/         # Reusable UI components
   ├── services/          # API and other services
-  ├── types/             # TypeScript type definitions
+  ├── types/             # Type definitions
   ├── utils/             # Utility functions
-  ├── styles/            # Global styles and themes
-  └── App.tsx            # Main application component
+  └── App.js             # Main application component
 ```
 
 ## Contributing
