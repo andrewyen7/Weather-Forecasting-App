@@ -1,0 +1,48 @@
+import React, { useState } from 'react';
+import { TextField, IconButton, Box } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import styled from 'styled-components';
+
+const SearchContainer = styled(Box)`
+  display: flex;
+  gap: 8px;
+  margin: 20px 0;
+  width: 100%;
+  max-width: 500px;
+`;
+
+const SearchBar = ({ onSearch }) => {
+  const [city, setCity] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (city.trim()) {
+      onSearch(city.trim());
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <SearchContainer>
+        <TextField
+          fullWidth
+          variant="outlined"
+          placeholder="Enter city name..."
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          size="small"
+        />
+        <IconButton
+          type="submit"
+          color="primary"
+          aria-label="search"
+          disabled={!city.trim()}
+        >
+          <SearchIcon />
+        </IconButton>
+      </SearchContainer>
+    </form>
+  );
+};
+
+export default SearchBar;

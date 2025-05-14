@@ -1,0 +1,90 @@
+import React from 'react';
+import { Card, CardContent, Typography, Box } from '@mui/material';
+import styled from 'styled-components';
+import { formatTemperature, convertToFahrenheit, getWeatherIcon, formatDate } from '../utils/weatherUtils';
+
+const ForecastContainer = styled(Box)`
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 16px 0;
+  margin: 20px 0;
+`;
+
+const ForecastCard = styled(Card)`
+  min-width: 150px;
+  flex: 0 0 auto;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+`;
+
+const WeatherIcon = styled.img`
+  width: 50px;
+  height: 50px;
+`;
+
+const Forecast = ({ forecast, unit }) => {
+  const groupByDay = (forecastList) => {
+    const groups = {};
+    forecastList.forEach((item) => {
+      const date = new Date(item.dt * 1000).toLocaleDateString();
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(item);
+    });
+    return groups;
+  };
+
+  const getNoonForecast = (dayForecasts) => {
+    return dayForecasts.find((forecast) => {
+      const hour = new Date(forecast.dt * 1000).getHours();
+      return hour >= 11 && hour <= 13;
+    }) || dayForecasts[0];
+  };
+
+  const forecastGroups = groupByDay(forecast.list);
+  const dailyForecasts = Object.values(forecastGroups).map(getNoonForecast);
+
+  return (
+    <ForecastContainer>
+      {dailyForecasts.map((dayForecast) => (
+        <ForecastCard key={dayForecast.dt}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>
+              {formatDate(dayForecast.dt)}
+            </Typography>
+            <Box display="flex" justifyContent="center" mb={1}>
+              <WeatherIcon
+                src={getWeatherIcon(dayForecast.weather[0].icon)}
+                alt={dayForecast.weather[0].description}
+              />
+            </Box>
+            <Typography variant="h5" align="center" gutterBottom>
+              {formatTemperature(
+                unit === 'C' ? dayForecast.main.temp : convertToFahrenheit(dayForecast.main.temp),
+                unit
+              )}
+            </Typography>
+            <Typography variant="body2" color="textSecondary" align="center">
+              {dayForecast.weather[0].description}
+            </Typography>
+            <Box mt={1}>
+              <Typography variant="body2" color="textSecondary">
+                Humidity: {dayForecast.main.humidity}%
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                Wind: {Math.round(dayForecast.wind.speed)} m/s
+              </Typography>
+            </Box>
+          </CardContent>
+        </ForecastCard>
+      ))}
+    </ForecastContainer>
+  );
+};
+
+export default Forecast;
