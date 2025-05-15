@@ -116,18 +116,52 @@ function App() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleSearch = async (city) => {
+  // Track if we're in development or production
+  const isDevelopment = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1';
+  
+  const handleSearch = async (query, isGeolocation = false) => {
     setLoading(true);
     setError(null);
+    
+    // Log environment info for debugging
+    console.log(`Environment: ${isDevelopment ? 'Development' : 'Production'}`);
+    console.log(`Search query: ${query}, isGeolocation: ${isGeolocation}`);
+    
     try {
+      // Add a small delay in production for geolocation requests
+      // This helps with race conditions in some browsers
+      if (isGeolocation && !isDevelopment) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+      
       const [weatherData, forecastData] = await Promise.all([
-        fetchWeather(city),
-        fetchForecast(city)
+        fetchWeather(query),
+        fetchForecast(query)
       ]);
+      
+      // Log success for debugging
+      console.log('Weather data fetched successfully');
+      
       setWeather(weatherData);
       setForecast(forecastData);
     } catch (err) {
-      setError(err.message || 'Failed to fetch weather data');
+      console.error(`Weather fetch error: ${err.message}`);
+      
+      // Handle errors differently based on environment and request type
+      if (isGeolocation) {
+        // For geolocation errors in production, show a more specific error
+        if (!isDevelopment) {
+          setError('Unable to get weather for your location. Please try searching for a city name instead.');
+        } else {
+          // In development, just log the error
+          console.error('Geolocation weather fetch error:', err.message);
+        }
+      } else {
+        // For regular search errors, show the error message
+        setError(err.message || 'Failed to fetch weather data');
+      }
+      
       setWeather(null);
       setForecast(null);
     } finally {

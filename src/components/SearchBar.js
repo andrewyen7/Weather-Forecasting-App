@@ -83,63 +83,74 @@ const SearchBar = ({ onSearch }) => {
     }
   };
   
-  // Create a state to track if we're currently getting location
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
+  // Use state to track geolocation status
+  const [geoStatus, setGeoStatus] = useState('idle');
 
   const handleLocationClick = () => {
-    // Prevent multiple clicks
-    if (isGettingLocation) return;
+    // Prevent multiple clicks while processing
+    if (geoStatus === 'loading') return;
     
+    // Check if geolocation is supported
     if (!navigator.geolocation) {
       alert("Geolocation is not supported by your browser. Please enter a city name.");
       return;
     }
     
-    setIsGettingLocation(true);
+    // Set loading state
+    setGeoStatus('loading');
     
-    // Create a success flag to track if we've successfully processed location
-    let locationProcessed = false;
-    
-    // Set up success handler
-    const handleSuccess = (position) => {
-      if (locationProcessed) return; // Prevent duplicate processing
-      locationProcessed = true;
-      
-      const lat = position.coords.latitude;
-      const lon = position.coords.longitude;
-      console.log(`Location found: ${lat},${lon}`);
-      
-      // Use the coordinates to search for weather
-      onSearch(`${lat},${lon}`);
-      setIsGettingLocation(false);
-    };
-    
-    // Set up error handler
-    const handleError = (error) => {
-      if (locationProcessed) return; // Prevent showing error if we already processed location
-      locationProcessed = true;
-      
-      console.error("Geolocation error:", error);
-      alert("Unable to get your location. Please enter a city name instead.");
-      setIsGettingLocation(false);
+    // Define options for better compatibility
+    const options = {
+      enableHighAccuracy: false,  // Don't need high accuracy for weather
+      timeout: 7000,             // Shorter timeout for better UX
+      maximumAge: 0              // Don't use cached position
     };
     
     try {
+      // Request geolocation with proper options
       navigator.geolocation.getCurrentPosition(
-        handleSuccess,
-        handleError,
-        {
-          timeout: 10000,
-          maximumAge: 0,
-          enableHighAccuracy: false
-        }
+        // Success handler
+        (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          console.log(`Location found: ${lat},${lon}`);
+          
+          // Use the coordinates to search for weather
+          onSearch(`${lat},${lon}`, true);
+          setGeoStatus('success');
+        },
+        // Error handler
+        (error) => {
+          console.error("Geolocation error:", error.code, error.message);
+          
+          // Handle different error types
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              // User denied permission
+              alert("Location access was denied. Please enter a city name manually.");
+              break;
+            case error.POSITION_UNAVAILABLE:
+              // Position unavailable
+              alert("Location information is unavailable. Please enter a city name.");
+              break;
+            case error.TIMEOUT:
+              // Timeout
+              alert("Location request timed out. Please enter a city name.");
+              break;
+            default:
+              // Other errors
+              alert("An unknown error occurred getting your location. Please enter a city name.");
+          }
+          
+          setGeoStatus('error');
+        },
+        options
       );
     } catch (e) {
-      if (!locationProcessed) {
-        console.error("Exception in geolocation:", e);
-        alert("Unable to get your location. Please enter a city name instead.");
-        setIsGettingLocation(false);
-      }
+      // Handle any exceptions
+      console.error("Exception in geolocation:", e);
+      alert("Unable to access location services. Please enter a city name.");
+      setGeoStatus('error');
     }
   };
 
