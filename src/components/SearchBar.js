@@ -83,21 +83,63 @@ const SearchBar = ({ onSearch }) => {
     }
   };
   
+  // Create a state to track if we're currently getting location
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
+
   const handleLocationClick = () => {
-    if (navigator.geolocation) {
+    // Prevent multiple clicks
+    if (isGettingLocation) return;
+    
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported by your browser. Please enter a city name.");
+      return;
+    }
+    
+    setIsGettingLocation(true);
+    
+    // Create a success flag to track if we've successfully processed location
+    let locationProcessed = false;
+    
+    // Set up success handler
+    const handleSuccess = (position) => {
+      if (locationProcessed) return; // Prevent duplicate processing
+      locationProcessed = true;
+      
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      console.log(`Location found: ${lat},${lon}`);
+      
+      // Use the coordinates to search for weather
+      onSearch(`${lat},${lon}`);
+      setIsGettingLocation(false);
+    };
+    
+    // Set up error handler
+    const handleError = (error) => {
+      if (locationProcessed) return; // Prevent showing error if we already processed location
+      locationProcessed = true;
+      
+      console.error("Geolocation error:", error);
+      alert("Unable to get your location. Please enter a city name instead.");
+      setIsGettingLocation(false);
+    };
+    
+    try {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          onSearch(`${lat},${lon}`);
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          alert("Unable to get your location. Please enter a city name instead.");
+        handleSuccess,
+        handleError,
+        {
+          timeout: 10000,
+          maximumAge: 0,
+          enableHighAccuracy: false
         }
       );
-    } else {
-      alert("Geolocation is not supported by your browser. Please enter a city name.");
+    } catch (e) {
+      if (!locationProcessed) {
+        console.error("Exception in geolocation:", e);
+        alert("Unable to get your location. Please enter a city name instead.");
+        setIsGettingLocation(false);
+      }
     }
   };
 
