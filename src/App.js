@@ -116,55 +116,42 @@ function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // Track if we're in development or production
-  const isDevelopment = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1';
-  
+  // Simplified approach - no environment detection needed
   const handleSearch = async (query, isGeolocation = false) => {
+    // Always clear error state at the beginning
     setLoading(true);
     setError(null);
     
-    // Log environment info for debugging
-    console.log(`Environment: ${isDevelopment ? 'Development' : 'Production'}`);
+    // Log for debugging
     console.log(`Search query: ${query}, isGeolocation: ${isGeolocation}`);
     
     try {
-      // Add a small delay in production for geolocation requests
-      // This helps with race conditions in some browsers
-      if (isGeolocation && !isDevelopment) {
-        await new Promise(resolve => setTimeout(resolve, 500));
-      }
-      
+      // Fetch weather data
       const [weatherData, forecastData] = await Promise.all([
         fetchWeather(query),
         fetchForecast(query)
       ]);
       
-      // Log success for debugging
+      // Log success
       console.log('Weather data fetched successfully');
       
+      // Update state with fetched data
       setWeather(weatherData);
       setForecast(forecastData);
     } catch (err) {
       console.error(`Weather fetch error: ${err.message}`);
       
-      // Handle errors differently based on environment and request type
-      if (isGeolocation) {
-        // For geolocation errors in production, show a more specific error
-        if (!isDevelopment) {
-          setError('Unable to get weather for your location. Please try searching for a city name instead.');
-        } else {
-          // In development, just log the error
-          console.error('Geolocation weather fetch error:', err.message);
-        }
-      } else {
-        // For regular search errors, show the error message
+      // CRITICAL: Never show errors for geolocation requests
+      if (!isGeolocation) {
+        // Only show errors for manual city searches
         setError(err.message || 'Failed to fetch weather data');
       }
       
+      // Clear weather data on error
       setWeather(null);
       setForecast(null);
     } finally {
+      // Always set loading to false when done
       setLoading(false);
     }
   };

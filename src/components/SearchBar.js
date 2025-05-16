@@ -83,75 +83,35 @@ const SearchBar = ({ onSearch }) => {
     }
   };
   
-  // Use state to track geolocation status
-  const [geoStatus, setGeoStatus] = useState('idle');
-
+  // Simplified geolocation handling - no alerts at all
   const handleLocationClick = () => {
-    // Prevent multiple clicks while processing
-    if (geoStatus === 'loading') return;
-    
-    // Check if geolocation is supported
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser. Please enter a city name.");
+      console.log("Geolocation not supported");
       return;
     }
     
-    // Set loading state
-    setGeoStatus('loading');
-    
-    // Define options for better compatibility
+    // Simple options
     const options = {
-      enableHighAccuracy: false,  // Don't need high accuracy for weather
-      timeout: 7000,             // Shorter timeout for better UX
-      maximumAge: 0              // Don't use cached position
+      enableHighAccuracy: false,
+      timeout: 10000,
+      maximumAge: 0
     };
     
-    try {
-      // Request geolocation with proper options
-      navigator.geolocation.getCurrentPosition(
-        // Success handler
-        (position) => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          console.log(`Location found: ${lat},${lon}`);
-          
-          // Use the coordinates to search for weather
-          onSearch(`${lat},${lon}`, true);
-          setGeoStatus('success');
-        },
-        // Error handler
-        (error) => {
-          console.error("Geolocation error:", error.code, error.message);
-          
-          // Handle different error types
-          switch(error.code) {
-            case error.PERMISSION_DENIED:
-              // User denied permission
-              alert("Location access was denied. Please enter a city name manually.");
-              break;
-            case error.POSITION_UNAVAILABLE:
-              // Position unavailable
-              alert("Location information is unavailable. Please enter a city name.");
-              break;
-            case error.TIMEOUT:
-              // Timeout
-              alert("Location request timed out. Please enter a city name.");
-              break;
-            default:
-              // Other errors
-              alert("An unknown error occurred getting your location. Please enter a city name.");
-          }
-          
-          setGeoStatus('error');
-        },
-        options
-      );
-    } catch (e) {
-      // Handle any exceptions
-      console.error("Exception in geolocation:", e);
-      alert("Unable to access location services. Please enter a city name.");
-      setGeoStatus('error');
-    }
+    // Use a simple approach with no alerts
+    navigator.geolocation.getCurrentPosition(
+      // Success handler - just use the coordinates
+      (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        console.log(`Location found: ${lat},${lon}`);
+        onSearch(`${lat},${lon}`, true);
+      },
+      // Error handler - just log errors, no alerts
+      (error) => {
+        console.error("Geolocation error:", error.code, error.message);
+      },
+      options
+    );
   };
 
   return (
