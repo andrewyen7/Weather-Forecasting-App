@@ -83,28 +83,37 @@ const SearchBar = ({ onSearch }) => {
     }
   };
   
-  // Simplified geolocation handling - no alerts at all
+  // Improved geolocation handling with proper coordinate formatting
   const handleLocationClick = () => {
     if (!navigator.geolocation) {
       console.log("Geolocation not supported");
       return;
     }
     
-    // Simple options
+    // Better options for more reliable results
     const options = {
-      enableHighAccuracy: false,
+      enableHighAccuracy: true, // Try to get the best possible location
       timeout: 10000,
       maximumAge: 0
     };
     
     // Use a simple approach with no alerts
     navigator.geolocation.getCurrentPosition(
-      // Success handler - just use the coordinates
+      // Success handler with proper coordinate formatting
       (position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
+        // Get coordinates with proper precision (5 decimal places is sufficient for weather)
+        const lat = position.coords.latitude.toFixed(5);
+        const lon = position.coords.longitude.toFixed(5);
+        
+        // Log for debugging
         console.log(`Location found: ${lat},${lon}`);
-        onSearch(`${lat},${lon}`, true);
+        
+        // Format coordinates properly for the API
+        const coordString = `${lat},${lon}`;
+        console.log(`Sending coordinates: ${coordString}`);
+        
+        // Pass to search function
+        onSearch(coordString, true);
       },
       // Error handler - just log errors, no alerts
       (error) => {
